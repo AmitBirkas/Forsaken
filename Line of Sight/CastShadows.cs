@@ -6,7 +6,9 @@ public class CastShadows : MonoBehaviour
 {
     public Material ShadowMaterial;
 
+    new Transform transform;
     Transform playerTrans; 
+
     Mesh mesh;
     Vector3[] verts;
     Vector3[] norms;
@@ -16,7 +18,7 @@ public class CastShadows : MonoBehaviour
     void Start()
     {
         playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
-        Transform transform = gameObject.transform;
+        transform = gameObject.transform;
 
         GameObject shadow = new GameObject("Shadow", typeof(MeshFilter), typeof(MeshRenderer));
         shadow.transform.parent = transform;
@@ -60,6 +62,8 @@ public class CastShadows : MonoBehaviour
         {
             uvs[i] = Vector2.zero;
         }
+
+        StartCoroutine("hideIfInvisible");
     }
 
     void Update()
@@ -73,5 +77,27 @@ public class CastShadows : MonoBehaviour
         mesh.triangles = tris;
         mesh.normals = norms;
         mesh.uv = uvs;
+    }
+
+    IEnumerator hideIfInvisible()
+    {
+        while (true)
+        {
+            renderer.enabled = false;
+
+            for (int i = 0; i < 4; i++)
+            {
+                RaycastHit2D[] hits = Physics2D.RaycastAll(playerTrans.position, verts[i] - playerTrans.position);
+
+                if (hits.Length == 2 && hits[0].collider.tag == "Player" && hits[1].collider == collider2D)
+                {
+                    renderer.enabled = true;
+                    break;
+                }
+
+            }
+
+            yield return new WaitForSeconds(0.1f);
+        }
     }
 }
