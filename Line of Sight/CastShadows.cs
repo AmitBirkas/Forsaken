@@ -1,44 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class CastShadows : MonoBehaviour
 {
-    public GameObject w;
-    public GameObject shadow;
+    Transform playerTrans; 
+    
+    Mesh mesh;
 
-    new Transform transform;
+    Vector3[] verts;
+    Vector3[] norms;
+    int[] tris;
 
     void Start()
     {
-        transform = gameObject.transform;
-    }
+        playerTrans = GameObject.FindGameObjectWithTag("Player").transform;
+        Transform transform = gameObject.transform;
 
-    void Update()
-    {
-        Vector3[] points = new Vector3[8];
-        Vector3 pos = w.transform.position;
-        pos.z = 0;
-        Vector3 extents = w.renderer.bounds.extents;
+        GameObject shadow = new GameObject("Shadow", typeof(MeshFilter), typeof(MeshRenderer));
+        shadow.transform.parent = transform;
 
-        points[0] = new Vector3(-extents.x, -extents.y);
-        points[1] = new Vector3(extents.x, -extents.y);
-        points[2] = new Vector3(extents.x, extents.y);
-        points[3] = new Vector3(-extents.x, extents.y);
+        MeshFilter shadowMF = shadow.GetComponent<MeshFilter>();
+        mesh = shadowMF.mesh;
 
-        for (int i = 0; i < points.Length / 2; i++)
-        {
-            points[i + points.Length / 2] = points[i] + ((points[i] + pos) - transform.position) * 100f;
-
-        }
-
-        Vector3[] norms = new Vector3[points.Length];
-
-        for (int i = 0; i < points.Length; i++)
-        {
-            norms[i] = Vector3.back;
-        }
-
-        int[] tris =
+        verts = new Vector3[8];
+        norms = new Vector3[verts.Length];
+        tris = new int[]
         {
             0,7,4,
             0,3,7,
@@ -50,34 +37,31 @@ public class CastShadows : MonoBehaviour
             5,1,0
         };
 
-        MeshFilter mf = shadow.GetComponent<MeshFilter>();
-        if (mf == null)
-        {
-            mf = shadow.AddComponent<MeshFilter>();
-        }
-        Mesh m = mf.mesh;
-        m.vertices = points;
-        m.triangles = tris;
-        m.normals = norms;
+        float x = transform.position.x;
+        float y = transform.position.y;
+        Vector3 extents = renderer.bounds.extents;
 
-        mf.mesh = m;
+        verts[0] = new Vector3(x - extents.x, y - extents.y);
+        verts[1] = new Vector3(x + extents.x, y - extents.y);
+        verts[2] = new Vector3(x + extents.x, y + extents.y);
+        verts[3] = new Vector3(x - extents.x, y + extents.y);
+
+        for (int i = 0; i < norms.Length; i++)
+        {
+            norms[i] = Vector3.back;
+        }
     }
 
-    void OnDrawGizmos()
+    void Update()
     {
-        Vector3[] points = new Vector3[8];
-        Vector3 pos = w.transform.position;
-        Vector3 extents = w.renderer.bounds.extents;
-
-        points[0] = new Vector3(pos.x - extents.x, pos.y - extents.y);
-        points[1] = new Vector3(pos.x + extents.x, pos.y - extents.y);
-        points[2] = new Vector3(pos.x + extents.x, pos.y + extents.y);
-        points[3] = new Vector3(pos.x - extents.x, pos.y + extents.y);
-
-        for (int i = 0; i < points.Length / 2; i++)
+        for (int i = 0; i < verts.Length / 2; i++)
         {
-            points[i + points.Length / 2] = points[i] + (points[i] - transform.position) * 100f;
-            Gizmos.DrawLine(points[i], points[i + points.Length / 2]);
+            verts[i + verts.Length / 2] = verts[i] + (verts[i] - playerTrans.position) * 100f;
+
         }
+
+        mesh.vertices = verts;
+        mesh.triangles = tris;
+        mesh.normals = norms;
     }
 }
