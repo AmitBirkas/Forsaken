@@ -4,13 +4,14 @@ using System.Collections.Generic;
 
 public class CastShadows : MonoBehaviour
 {
-    Transform playerTrans; 
-    
-    Mesh mesh;
+    public Material ShadowMaterial;
 
+    Transform playerTrans; 
+    Mesh mesh;
     Vector3[] verts;
     Vector3[] norms;
     int[] tris;
+    Vector2[] uvs;
 
     void Start()
     {
@@ -22,6 +23,9 @@ public class CastShadows : MonoBehaviour
 
         MeshFilter shadowMF = shadow.GetComponent<MeshFilter>();
         mesh = shadowMF.mesh;
+
+        MeshRenderer mr = shadow.GetComponent<MeshRenderer>();
+        mr.material = ShadowMaterial;
 
         verts = new Vector3[8];
         norms = new Vector3[verts.Length];
@@ -36,6 +40,7 @@ public class CastShadows : MonoBehaviour
             4,5,0,
             5,1,0
         };
+        uvs = new Vector2[verts.Length];
 
         float x = transform.position.x;
         float y = transform.position.y;
@@ -50,6 +55,11 @@ public class CastShadows : MonoBehaviour
         {
             norms[i] = Vector3.back;
         }
+
+        for (int i = 0; i < uvs.Length; i++)
+        {
+            uvs[i] = Vector2.zero;
+        }
     }
 
     void Update()
@@ -57,11 +67,11 @@ public class CastShadows : MonoBehaviour
         for (int i = 0; i < verts.Length / 2; i++)
         {
             verts[i + verts.Length / 2] = verts[i] + (verts[i] - playerTrans.position) * 100f;
-
         }
 
         mesh.vertices = verts;
         mesh.triangles = tris;
         mesh.normals = norms;
+        mesh.uv = uvs;
     }
 }
